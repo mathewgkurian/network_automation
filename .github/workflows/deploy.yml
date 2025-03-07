@@ -1,4 +1,4 @@
-name: Deploy
+name: CI/CD Pipeline
 
 on:
   push:
@@ -6,38 +6,43 @@ on:
       - main
 
 jobs:
-  build:
+  Build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Install Docker
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and push Docker image
         run: |
-          sudo apt clean
-          sudo apt update --allow-unauthenticated
-          sudo apt remove -y containerd containerd.io
-          sudo apt autoremove -y
-          sudo apt install -y docker.io
+          docker buildx build --file **/Dockerfile --iidfile /tmp/docker-build-push-sJvfhV/iidfile --tag myapp:${{ github.sha }} --metadata-file /tmp/docker-build-push-sJvfhV/metadata-file --push .
+        env:
+          DOCKER_CLI_EXPERIMENTAL: enabled
 
-      - name: Build and Push Docker Image
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: '**/Dockerfile'
-          push: true
-          tags: myapp:$(GITHUB_SHA)
-
-  deploy:
-    needs: build
+  Deploy:
+    needs: Build
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Azure CLI
+        uses: azure/setup-azure-cli@v1
+
       - name: Deploy with Ansible
         run: |
           ansible-playbook -i inventory playbook.yml
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: 'false'
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
         with:
           app-name: 'YourAppServiceName'
+          slot-name: 'Production'
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          images: 'myapp:$(GITHUB_SHA)'
+          images: '$(DOCKER_REGISTRY)/myapp:${{ github.sha }}'
