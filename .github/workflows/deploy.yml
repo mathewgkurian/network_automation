@@ -12,6 +12,9 @@ jobs:
     steps:
       - name: Install Docker
         run: |
+          sudo apt remove -y containerd containerd.io
+          sudo apt autoremove -y
+          sudo apt clean
           sudo apt update
           sudo apt install -y docker.io
 
