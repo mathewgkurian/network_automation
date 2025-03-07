@@ -1,0 +1,50 @@
+name: Deploy HTML Page to VM
+
+on:
+  push:
+    branches:
+      - main  # Runs when code is pushed to 'main'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Step 2: Set up SSH Key
+      - name: Set up SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VM_SSH_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.VM_PUBLIC_IP }} >> ~/.ssh/known_hosts
+
+      # Step 3: Deploy files to VM
+      - name: Deploy files to VM
+        run: |
+          scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -r ./* ${{ secrets.VM_USERNAME }}@${{ secrets.VM_PUBLIC_IP }}:~/html-app/
+
+      # Step 4: Deploy Docker Container on VM
+      - name: Deploy Docker Container on VM
+        run: |
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.VM_USERNAME }}@${{ secrets.VM_PUBLIC_IP }} << 'EOF'
+          # Ensure Docker is installed
+          sudo apt update && sudo apt install -y docker.io
+
+          # Stop and remove old container if running
+          docker stop html-app || true
+          docker rm html-app || true
+
+          # Remove old images to free up space (optional)
+          docker rmi html-app:latest || true
+
+          # Navigate to project directory
+          cd ~/html-app
+
+          # Build and run the Docker container
+          docker build -t html-app:latest .
+          docker run -d -p 80:80 --name html-app html-app:latest
+          EOF
