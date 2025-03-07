@@ -12,10 +12,10 @@ jobs:
     steps:
       - name: Install Docker
         run: |
+          sudo apt clean
+          sudo apt update --allow-unauthenticated
           sudo apt remove -y containerd containerd.io
           sudo apt autoremove -y
-          sudo apt clean
-          sudo apt update
           sudo apt install -y docker.io
 
       - name: Build and Push Docker Image
