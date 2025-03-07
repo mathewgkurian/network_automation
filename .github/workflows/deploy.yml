@@ -24,7 +24,7 @@ jobs:
 
     - name: Build and push Docker image to Docker Hub
       run: |
-        docker buildx build --file ./Dockerfile --tag your-dockerhub-username/your-image-name:${{ github.sha }} --push .
+        docker buildx build --file ./Dockerfile --tag 20059516/my-web-app:${{ github.sha }} --push .
 
   Deploy-To-VM:
     needs: Build-and-Push
@@ -40,13 +40,13 @@ jobs:
         sudo apt update && sudo apt install -y docker.io
 
         # Stop and remove any existing container
-        docker stop your-container-name || true
-        docker rm your-container-name || true
+        docker stop my-web-app || true
+        docker rm my-web-app || true
 
         # Pull the latest Docker image from Docker Hub
-        docker pull your-dockerhub-username/your-image-name:${{ github.sha }}
+        docker pull 20059516/my-web-app:${{ github.sha }}
 
         # Run the Docker container
-        docker run -d -p 80:80 --name your-container-name your-dockerhub-username/your-image-name:${{ github.sha }}
+        docker run -d -p 80:80 --name my-web-app 20059516/my-web-app:${{ github.sha }}
 
         EOF
