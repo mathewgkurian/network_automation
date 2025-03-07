@@ -24,7 +24,7 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker buildx build --file ./Dockerfile --iidfile /tmp/docker-build-push-sJvfhV/iidfile --tag yourusername/myapp:${{ github.sha }} --metadata-file /tmp/docker-build-push-sJvfhV/metadata-file --push .
+          docker buildx build --file ./Dockerfile --iidfile /tmp/docker-build-push-sJvfhV/iidfile --tag 20059516/my-web-app:${{ github.sha }} --metadata-file /tmp/docker-build-push-sJvfhV/metadata-file --push .
         env:
           DOCKER_CLI_EXPERIMENTAL: enabled
 
