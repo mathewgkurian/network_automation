@@ -14,14 +14,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Step 2: Set up SSH Key
-      - name: Set up SSH Key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.VM_SSH_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.VM_PUBLIC_IP }} >> ~/.ssh/known_hosts
-
       # Step 3: Deploy files to VM
       - name: Deploy files to VM
         run: |
