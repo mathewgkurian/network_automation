@@ -6,7 +6,7 @@ on:
       - main  # Runs when code is pushed to 'main'
 
 jobs:
-  deploy:
+  Build-and-Push:
     runs-on: ubuntu-latest
 
     steps:
@@ -26,8 +26,8 @@ jobs:
       run: |
         docker buildx build --file ./Dockerfile --tag your-dockerhub-username/your-image-name:${{ github.sha }} --push .
 
-  Deploy:
-    needs: deploy
+  Deploy-To-VM:
+    needs: Build-and-Push
     runs-on: ubuntu-latest
 
     steps:
