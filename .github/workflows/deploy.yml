@@ -14,15 +14,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # Step 2: Set up SSH Key (linux-vm-cre.pem)
+      - name: Set up SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VM_SSH_KEY }}" | tr -d '\r' > ~/.ssh/linux-vm-cre.pem
+          chmod 600 ~/.ssh/linux-vm-cre.pem
+          ssh-keyscan -H ${{ secrets.VM_PUBLIC_IP }} >> ~/.ssh/known_hosts
+
       # Step 3: Deploy files to VM
       - name: Deploy files to VM
         run: |
-          scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -r ./* ${{ secrets.VM_USERNAME }}@${{ secrets.VM_PUBLIC_IP }}:~/html-app/
+          scp -i ~/.ssh/linux-vm-cre.pem -o StrictHostKeyChecking=no -r ./* ${{ secrets.VM_USERNAME }}@${{ secrets.VM_PUBLIC_IP }}:~/html-app/
 
       # Step 4: Deploy Docker Container on VM
       - name: Deploy Docker Container on VM
         run: |
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.VM_USERNAME }}@${{ secrets.VM_PUBLIC_IP }} << 'EOF'
+          ssh -i ~/.ssh/linux-vm-cre.pem -o StrictHostKeyChecking=no ${{ secrets.VM_USERNAME }}@${{ secrets.VM_PUBLIC_IP }} << 'EOF'
           # Ensure Docker is installed
           sudo apt update && sudo apt install -y docker.io
 
