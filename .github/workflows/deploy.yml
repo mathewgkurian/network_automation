@@ -35,7 +35,7 @@ jobs:
 
       - name: Deploy with Ansible
         run: |
-          ansible-playbook -i inventory playbook.yml
+          ansible-playbook -i inventory docker.yml
         env:
           ANSIBLE_HOST_KEY_CHECKING: 'false'
 
