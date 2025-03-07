@@ -36,9 +36,9 @@ jobs:
       - name: Deploy to a server (e.g., using Docker Compose or Kubernetes)
         run: |
           # SSH into your remote server (ensure you have the private key as a secret)
-          ssh -o StrictHostKeyChecking=no -i ${{ secrets.SSH_PRIVATE_KEY }} user@your_server_ip << 'EOF'
-            docker pull yourusername/myapp:${{ github.sha }}
-            docker stop myapp || true
-            docker rm myapp || true
-            docker run -d -p 80:80 --name myapp yourusername/myapp:${{ github.sha }}
+          ssh -o StrictHostKeyChecking=no -i ${{ secrets.SSH_PRIVATE_KEY }} azureuser@vm-ubuntu40.82.207.123 << 'EOF'
+            docker pull 20059516/my-web-app:${{ github.sha }}
+            docker stop my-web-app || true
+            docker rm my-web-app || true
+            docker run -d -p 80:80 --name my-web-app 20059516/my-web-app:${{ github.sha }}
           EOF
