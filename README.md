@@ -38,7 +38,7 @@ Run with your Azure VM's public IP.
 
 Run the playbook:
 ```bash
-ansible-playbook playbook.yml
+ansible-playbook -i inventory.ini playbook.yml
 
 Step 3: Docker Deployment
 Build the Docker image:
