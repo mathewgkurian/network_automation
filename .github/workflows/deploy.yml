@@ -34,19 +34,19 @@ jobs:
 
       - name: Stop and Remove Docker Container (if exists)
         run: |
-          ssh -i ~/.ssh/id_rsa azureuser@40.82.207.123 << 'EOF'
+          ssh -i ~/.ssh/id_rsa -t azureuser@40.82.207.123 << 'EOF'
             docker stop my-web-app || true
             docker rm my-web-app || true
           EOF
 
       - name: Load Docker Image on VM
         run: |
-          ssh -i ~/.ssh/id_rsa azureuser@40.82.207.123 << 'EOF'
+          ssh -i ~/.ssh/id_rsa -t azureuser@40.82.207.123 << 'EOF'
             docker load -i /home/azureuser/my-nginx.tar
           EOF
 
       - name: Run Docker Container on VM
         run: |
-          ssh -i ~/.ssh/id_rsa azureuser@40.82.207.123 << 'EOF'
+          ssh -i ~/.ssh/id_rsa -t azureuser@40.82.207.123 << 'EOF'
             docker run -d -p 80:80 --name my-web-app my-web-app
           EOF
