@@ -13,15 +13,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-
-      - name: Initialize Terraform
-        run: terraform init
-
-      - name: Apply Terraform
-        run: terraform apply -auto-approve
-
       - name: Install Ansible
         run: sudo apt update && sudo apt install -y ansible
 
@@ -42,11 +33,4 @@ jobs:
         run: docker save -o my-nginx.tar my-nginx
 
       - name: Copy Docker Image to VM
-        run: scp -i ~/.ssh/id_rsa my-nginx.tar azureuser@40.82.207.123:/home/azureuser/
-
-      - name: Load Docker Image on VM and Run
-        run: |
-          ssh -i ~/.ssh/id_rsa azureuser@40.82.207.123 << 'EOF'
-          sudo docker load -i /home/azureuser/my-nginx.tar
-          sudo docker run -d -p 80:80 my-nginx
-          EOF
+        run: scp -i ~/.ssh/id_rsa my-nginx.tar azureuser@40.82.207.123:/home/azureuser
