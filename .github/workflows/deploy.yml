@@ -3,41 +3,50 @@ name: Deploy to Azure VM
 on:
   push:
     branches:
-      - main  # Runs when code is pushed to 'main'
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Set up SSH Key
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H 40.82.207.123 >> ~/.ssh/known_hosts
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
 
-    - name: Deploy Docker Container on Azure VM
-      run: |
-        ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no azureuser@40.82.207.123 << 'EOF'
-        
-        # Ensure Docker is installed
-        sudo apt update && sudo apt install -y docker.io
-        
-        # Stop and remove old container if running
-        docker stop my-web-app || true
-        docker rm my-web-app || true
+      - name: Initialize Terraform
+        run: terraform init
 
-        # Remove old image to free up space
-        docker rmi 20059516/my-web-app:latest || true
+      - name: Apply Terraform
+        run: terraform apply -auto-approve
 
-        # Pull the latest Docker image from Docker Hub
-        docker pull 20059516/my-web-app:${{ github.sha }}
+      - name: Install Ansible
+        run: sudo apt update && sudo apt install -y ansible
 
-        # Run the Docker container
-        docker run -d -p 80:80 --name my-web-app 20059516/my-web-app:${{ github.sha }}
+      - name: Add SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H 40.82.207.123 >> ~/.ssh/known_hosts
 
-        EOF
+      - name: Run Ansible Playbook
+        run: ansible-playbook -i inventory.ini playbook.yml
+
+      - name: Build Docker Image
+        run: docker build -t my-nginx .
+
+      - name: Save Docker Image
+        run: docker save -o my-nginx.tar my-nginx
+
+      - name: Copy Docker Image to VM
+        run: scp -i ~/.ssh/id_rsa my-nginx.tar azureuser@40.82.207.123:/home/azureuser/
+
+      - name: Load Docker Image on VM and Run
+        run: |
+          ssh -i ~/.ssh/id_rsa azureuser@40.82.207.123 << 'EOF'
+          sudo docker load -i /home/azureuser/my-nginx.tar
+          sudo docker run -d -p 80:80 my-nginx
+          EOF
