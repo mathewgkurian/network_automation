@@ -27,7 +27,7 @@ jobs:
         run: docker build -t my-web-app .
 
       - name: Save Docker Image
-        run: docker save -o my-nginx.tar my-nginx
+        run: docker save -o my-nginx.tar my-web-app
 
       - name: Copy Docker Image to VM
         run: scp -i ~/.ssh/id_rsa my-nginx.tar azureuser@40.82.207.123:/home/azureuser
