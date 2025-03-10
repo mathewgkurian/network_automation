@@ -48,5 +48,16 @@ jobs:
               docker stop $CONTAINER_ID
               docker rm $CONTAINER_ID
             fi
-            # Remove the old container by name (if exists)
-            docker rm -f my-web-app || tr
+          EOF
+
+      - name: Load Docker Image on VM
+        run: |
+          ssh -i ~/.ssh/id_rsa -t azureuser@40.82.207.123 << 'EOF'
+            docker load -i /home/azureuser/my-nginx.tar
+          EOF
+
+      - name: Run Docker Container
+        run: |
+          ssh -i ~/.ssh/id_rsa -t azureuser@40.82.207.123 << 'EOF'
+            sudo docker run -d -p 80:80 --name my-web-app my-web-app
+          EOF
